@@ -9,17 +9,15 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
-
+      storage: {{ .Values.postgresql.storage }}
 ---
-# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgresql
   namespace: riley
 spec:
-  replicas: 1  # Changed from 2 to 1 – PostgreSQL with PVC should not run multiple pods
+  replicas: 1
   selector:
     matchLabels:
       app: postgresql
@@ -50,11 +48,11 @@ spec:
           mountPath: /var/lib/postgresql/data
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: {{ .Values.postgresql.resources.requests.memory }}
+            cpu: {{ .Values.postgresql.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: {{ .Values.postgresql.resources.limits.memory }}
+            cpu: {{ .Values.postgresql.resources.limits.cpu }}
         livenessProbe:
           exec:
             command: ["pg_isready", "-U", "postgres"]
@@ -64,9 +62,7 @@ spec:
       - name: postgresql-storage
         persistentVolumeClaim:
           claimName: postgresql-pvc
-
 ---
-# Service
 apiVersion: v1
 kind: Service
 metadata:

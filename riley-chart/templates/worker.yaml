@@ -20,7 +20,7 @@ metadata:
   name: worker
   namespace: riley
 spec:
-  replicas: 2
+  replicas: {{ .Values.worker.replicas }}
   selector:
     matchLabels:
       app: worker
@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: awaistahseen009/riley-backend:v1.1.3
+          image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
           command:
             - "python"
             - "-m"
@@ -48,8 +48,8 @@ spec:
                 name: riley-secrets
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "250m"
+              memory: {{ .Values.worker.resources.requests.memory }}
+              cpu: {{ .Values.worker.resources.requests.cpu }}
             limits:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: {{ .Values.worker.resources.limits.memory }}
+              cpu: {{ .Values.worker.resources.limits.cpu }}

@@ -8,7 +8,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi
+      storage: {{ .Values.redis.storage }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,11 +38,11 @@ spec:
               mountPath: /data
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: {{ .Values.redis.resources.requests.memory }}
+              cpu: {{ .Values.redis.resources.requests.cpu }}
             limits:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: {{ .Values.redis.resources.limits.memory }}
+              cpu: {{ .Values.redis.resources.limits.cpu }}
           livenessProbe:
             exec:
               command: ["redis-cli", "ping"]

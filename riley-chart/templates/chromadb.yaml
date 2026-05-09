@@ -19,7 +19,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: {{ .Values.chromadb.storage }}
   storageClassName: do-block-storage
 ---
 apiVersion: apps/v1
@@ -51,18 +51,18 @@ spec:
               value: "TRUE"
           volumeMounts:
             - name: chroma-storage
-              mountPath: /data   # default persist path
+              mountPath: /data
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
+              memory: {{ .Values.chromadb.resources.requests.memory }}
+              cpu: {{ .Values.chromadb.resources.requests.cpu }}
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: {{ .Values.chromadb.resources.limits.memory }}
+              cpu: {{ .Values.chromadb.resources.limits.cpu }}
           livenessProbe:
             tcpSocket:
               port: 8000
-            initialDelaySeconds: 60   # give more time to start
+            initialDelaySeconds: 60
             periodSeconds: 10
           readinessProbe:
             tcpSocket:

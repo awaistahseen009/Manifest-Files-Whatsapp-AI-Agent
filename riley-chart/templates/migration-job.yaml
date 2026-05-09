@@ -9,9 +9,8 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: migration
-          image: awaistahseen009/riley-backend:v1.0.6
+          image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
           command: ["alembic", "upgrade", "head"]
-          # Use envFrom to pull EVERYTHING inside the secret
           envFrom:
             - secretRef:
                 name: riley-secrets
