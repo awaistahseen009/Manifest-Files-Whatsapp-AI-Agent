@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-migration
+  namespace: riley
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migration
+          image: awaistahseen009/riley-backend:v1.0.6
+          command: ["alembic", "upgrade", "head"]
+          # Use envFrom to pull EVERYTHING inside the secret
+          envFrom:
+            - secretRef:
+                name: riley-secrets

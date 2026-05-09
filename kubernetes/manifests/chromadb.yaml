@@ -1,0 +1,88 @@
+# PVC: 5GB for ChromaDB's vector data — client memories, company
+# knowledge chunks, document chunks. This is your long-term memory store.
+# Losing this means the agent forgets everything about every client.
+#
+# Deployment: chromadb/chroma official image. Mounts PVC at /chroma/chroma
+# which is where Chroma stores its SQLite index and vector files.
+# IS_PERSISTENT=TRUE tells Chroma to write to disk not memory only.
+#
+# Service: ClusterIP. Backend and workers connect via
+# CHROMA_HOST=chroma-service and CHROMA_PORT=8000.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chroma-pvc
+  namespace: riley
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: do-block-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chromadb
+  namespace: riley
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromadb
+  template:
+    metadata:
+      labels:
+        app: chromadb
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: chromadb
+          image: chromadb/chroma:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: IS_PERSISTENT
+              value: "TRUE"
+          volumeMounts:
+            - name: chroma-storage
+              mountPath: /data   # default persist path
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 60   # give more time to start
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 5
+      volumes:
+        - name: chroma-storage
+          persistentVolumeClaim:
+            claimName: chroma-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chroma-service
+  namespace: riley
+spec:
+  selector:
+    app: chromadb
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
